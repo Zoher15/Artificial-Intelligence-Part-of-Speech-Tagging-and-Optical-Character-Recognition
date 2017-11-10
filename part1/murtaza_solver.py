@@ -12,6 +12,7 @@
 
 import random
 import math
+import operator
 from label import read_data
 #import copy
 
@@ -31,8 +32,9 @@ type_of_words=['adj','adv','adp','conj','det','noun','num','pron','prt','verb','
 transition_count=[[0 ]*12 for i in range(12)]
 transition_probability=[[0]*12 for i in range(12)]
 emission_probability={}
-f = read_data("bc.test.tiny")
-count=0
+f = read_data("bc.train")
+count=float(1)/10000000
+
 
 #for i in range(len(f)):
     #for j in range(len(f[i][0])):
@@ -41,7 +43,7 @@ count=0
 
 #The above 4 lines(Commented) and the below one line performs the same function
 #emission_count=emission_probability={j:copy.deepcopy(emission_type_count) for i in f for j in i[0]}
-emission_count=emission_probability={j:[0]*12 for i in f for j in i[0]}
+emission_count=emission_probability={j:[count]*12 for i in f for j in i[0]}
 #print emission_probability
 #emission_probability= {j:copy.deepcopy(emission_type_count) for i in f for j in i[0]}
 #print len(emission_probability)
@@ -52,6 +54,7 @@ def store_data():
     first_word_count=[0]*12
     total_num_words=0
     total_num_sentances=0
+    count =0
 
     for i in range(len(f)):
         total_num_words+=len(f[i][0])
@@ -68,34 +71,38 @@ def store_data():
             #Counts used for calculating emission probability
             emission_count[f[i][0][j]][index]+=1
             #  implement the below line to make it more efficient with a little less accuracy
+            
             emission_probability[f[i][0][j]][index]=float(emission_count[f[i][0][j]][index])/initial_count[index]
-        # print emission_probability
-        # print "_______________________________________________________"
+            # print emission_probability[f[i][0][j]][index]
 
+    # print emission_probability
 
 
     for i in range(12):
         #Initial Probability distribution
-        initial_state_distribution[i]=float(first_word_count[i])/len(f)
+        if(first_word_count[i]==0):
+            initial_state_distribution[i]=count
+        else:
+            initial_state_distribution[i]=float(first_word_count[i])/len(f)
         #Calculating transition probabilities
         for j in range(12):
             if(sum(transition_count[i])==0 or transition_count[i][j]==0):
-                transition_probability[i][j]=0
+                transition_probability[i][j]=count
             else:
                 transition_probability[i][j]=float(transition_count[i][j])/sum(transition_count[i])
 
 
-    #Implement the below lines using dictionary comperehension
+    # Implement the below lines using dictionary comperehension
     # for i in range(len(emission_probability.keys())):
     #     for j in range(12):
     #         if(initial_count[j]==0 or emission_count.values()[i][j]==0):
-    #             emission_probability.values()[i][j]=0
+    #             emission_probability.values()[i][j]=float(1)/10000
     #         else:
     #             emission_probability.values()[i][j]=float(emission_count.values()[i][j])/initial_count[j]
-                                                                                
-    #print initial_state_distribution
-    #print emission_probability
-    #print emission_count
+
+    # print transition_probability
+    # print emission_probability
+    # print emission_count
 
 store_data()
 
@@ -112,23 +119,70 @@ def simplified(sentence):
 
 simplified("Desperately , Nick flashed one hand up , catching Poet's neck in the bend of his elbow .")
 
+# def hmm_ve(sentence):
+#     # sentence=sentence.lower()
+#     # sentence=sentence.split(" ")
+#     # dp_table=[]
+#     # temp=[]
+#     # for i in range(12):
+#     #     temp.append(initial_state_distribution[i]*emission_probability[sentence[0]][i])
+#     # dp_table.append(max(temp))
+#     # temp=[]
+#     # for i in range(1,len(sentence)):
+#     #     for j in range(12):
+#     #         for k in range(12):
+#     #             temp.append(dp_table[len(dp_table)-1]*transition_probability[j][k]*emission_probability[sentence[i]][k])
+
+#     #     dp_table.append(max(temp))
+#     # print dp_table
+
+#     sentence=sentence.lower()
+#     sentence=sentence.split(" ")
+#     alphamat=[[0]*12]*len(sentence)
+#     betamat=[[0]*12]*len(sentence)
+#     for t in range(len(sentence)):
+#         for j in range(12):
+#             if t==0:
+#                 alphamat[t][j]=emission_probability[sentence[t]][j]*initial_state_distribution[j]
+#             else:
+#                 alphamat[t][j]=emission_probability[sentence[t]][j]*sum([float(alphamat[t-1][i]*transition_probability[i][j]) for i in range(12)])
+#     for t in range(len(sentence)-1,0,-1):
+#         for j in range(12):
+#             if t==len(sentence)-1:
+#                 betamat[t][j]=1
+#             else:
+#                 betamat[t][j]=emission_probability[sentence[t]][j]*sum([float(alphamat[t-1][i]*transition_probability[i][j]) for i in range(12)])
+#     # print alphamat
+#     # print betamat
+#     vestates=[[max([[j,float(alphamat[t][j]*betamat[t][j])] for j in range(12)],key=operator.itemgetter(1))[0]] for t in range(len(sentence))]
+#     # print vestates
+    
+
+
+
+
 def hmm_ve(sentence):
     sentence=sentence.lower()
     sentence=sentence.split(" ")
-    dp_table=[]
-    temp=[]
-    for i in range(12):
-        temp.append(initial_state_distribution[i]*emission_probability[sentence[0]][i])
-    dp_table.append(max(temp))
-    temp=[]
-    for i in range(1,len(sentence)):
+    alphamat=[[0 for i in range(12)] for j in range(len(sentence))]
+    betamat=[[0 for i in range (12)] for j in range(len(sentence))]
+    for t in range(len(sentence)):
         for j in range(12):
-            for k in range(12):
-                temp.append(dp_table[len(dp_table)-1]*transition_probability[j][k]*emission_probability[sentence[i]][k])
-
-        dp_table.append(max(temp))
-    print dp_table
-    
+            if t==0:
+                alphamat[t][j]=emission_probability[sentence[t]][j]*initial_state_distribution[j]
+            else:
+                alphamat[t][j]=emission_probability[sentence[t]][j]*sum([float(alphamat[t-1][i]*transition_probability[i][j]) for i in range(12)])
+    for t in range(len(sentence)-1,-1,-1):
+        for j in range(12):
+            if t==len(sentence)-1:
+                betamat[t][j]=1
+            else:
+                betamat[t][j]=sum([float(betamat[t+1][i]*emission_probability[sentence[t+1]][i]*transition_probability[i][j]) for i in range(12)])
+    print alphamat
+    print betamat
+    vestates=[[max([[j,float(alphamat[t][j]*betamat[t][j])] for j in range(12)],key=operator.itemgetter(1))[0]] for t in range(len(sentence))]
+    for i in range(len(vestates)):
+        print (sentence[i],type_of_words[vestates[i][0]])
 
 
 hmm_ve("Desperately , Nick flashed one hand up , catching Poet's neck in the bend of his elbow .")
