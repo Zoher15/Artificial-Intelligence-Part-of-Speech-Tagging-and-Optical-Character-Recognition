@@ -1,3 +1,27 @@
+def viterbi(sentence):
+    sentence=sentence.lower()
+    sentence=sentence.split(" ")
+    T=len(sentence)
+    result = [[0 for t in range(T)]for j in range(12)]
+    memo = [[0 for i in range(12)]for t in range(T)]
+    for t in range(T):
+        for j in range(12):
+            if t==0:
+                memo[t][j] = initial_state_distribution[j] * emission_probability[sentence[t]][j]
+            else:
+                cost = [memo[t - 1][i]*transition_probability[i][j] for i in range(12)]
+                maxc = max(cost)
+                memo[t][j] = emission_probability[sentence[t]][j] * maxc
+                result[j][t] = cost.index(maxc)              
+    string2 = []
+    idx = memo[T - 1].index(max(memo[T - 1])) 
+    string2.append(type_of_words[idx])
+    i = len(sentence) - 1
+    while (i > 0):
+        idx = result[idx][i]
+        string2.append(type_of_words[idx])
+        i -= 1
+    print string2[::-1]
 ###################################
 # CS B551 Fall 2017, Assignment #3
 #
