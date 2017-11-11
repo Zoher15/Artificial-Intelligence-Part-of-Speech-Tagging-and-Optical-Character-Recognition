@@ -12,7 +12,8 @@
 #
 
 from pos_scorer import Score
-from pos_solver import *
+from zoher_solve import *
+
 import sys
 
 # Read in training or test data file
