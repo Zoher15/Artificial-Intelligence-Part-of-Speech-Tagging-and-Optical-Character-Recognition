@@ -12,9 +12,11 @@
 #
 
 from pos_scorer import Score
-from pos_solver import *
-import sys
+from murtaza1_solver import *
 
+import sys
+import time
+start_time=time.time()
 # Read in training or test data file
 #
 def read_data(fname):
@@ -29,7 +31,7 @@ def read_data(fname):
 
 ####################
 # Main program
-#
+
 
 if len(sys.argv) < 3:
     print "Usage: "
@@ -65,3 +67,5 @@ for (s, gt) in test_data:
     scorer.print_scores()
     
     print "----"
+    end_time=time.time()
+    print end_time-start_time
