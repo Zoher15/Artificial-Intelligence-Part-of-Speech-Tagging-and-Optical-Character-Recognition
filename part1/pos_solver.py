@@ -37,7 +37,7 @@ class Solver:
         posterior_log=[]
         
         for i in range(len(sentence)):
-            posterior_log.append(math.log(self.emission_probability[sentence[i]][Solver.type_of_words.index(label[i])]*Solver.initial_state_distribution[Solver.type_of_words.index(label[i])],2))            
+            posterior_log.append(math.log(self.emission_probability[sentence[i]][Solver.type_of_words.index(label[i])]*self.prior_probability[Solver.type_of_words.index(label[i])],2))            
 
         return sum(posterior_log)
 
