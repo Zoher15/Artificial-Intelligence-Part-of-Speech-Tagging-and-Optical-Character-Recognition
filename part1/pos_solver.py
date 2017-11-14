@@ -123,7 +123,7 @@ class Solver:
     def hmm_ve(self, sentence):
         #alphamat calculates and stores the forward probabilities
         alphamat=[[0 for i in range(12)] for j in range(len(sentence))]
-        #alphamat calculates and stores the backward probabilities
+        #betamat calculates and stores the backward probabilities
         betamat=[[0 for i in range (12)] for j in range(len(sentence))]
         for t in range(len(sentence)):
             for j in range(12):
