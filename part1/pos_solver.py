@@ -71,7 +71,7 @@ class Solver:
 
         for i in range(12):
             #Initial Probability distribution
-            self.prior_count.append(sum(Solver.transition_count[i]))
+            # self.prior_count.append(sum(Solver.transition_count[i]))
 
             if(first_word_count[i]==0):
                 Solver.initial_state_distribution[i]=Solver.count
@@ -87,8 +87,13 @@ class Solver:
                 if(sum(Solver.transition_count[i])==0 or Solver.transition_count[i][j]==0):
                     Solver.transition_probability[i][j]=Solver.count
                 else:
-                    Solver.transition_probability[i][j]=float(Solver.transition_count[i][j])/self.prior_count[i]
-        
+                    Solver.transition_probability[i][j]=float(Solver.transition_count[i][j])/sum(Solver.transition_count[i])
+
+        # print len(f[0][1])
+        self.prior_probability=[]
+        for i in range(12):
+            self.prior_probability.append(float(initial_count[i])/self.total_num_words)
+        # print sum(self.prior_probability)
 
         for i in self.emission_probability:
             for j in range(12):
@@ -107,7 +112,8 @@ class Solver:
             if(sentence[i] not in self.emission_probability):
                 self.emission_probability[sentence[i]]=[Solver.count,Solver.count,Solver.count,Solver.count,Solver.count,1-(Solver.count)*11,Solver.count,Solver.count,Solver.count,Solver.count,Solver.count,Solver.count]
             for j in range(12):
-                self.most_probable_tag[j]= self.emission_probability[sentence[i]][j]*Solver.initial_state_distribution[j]
+                self.most_probable_tag[j]= self.emission_probability[sentence[i]][j]*self.prior_probability[j]
+                # Solver.initial_state_distribution[j]
                 
             part_of_speech.append(Solver.type_of_words[self.most_probable_tag.index(max(self.most_probable_tag))])
 
