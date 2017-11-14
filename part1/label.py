@@ -12,7 +12,7 @@
 #
 
 from pos_scorer import Score
-from murtaza1_solver import *
+from pos_solver import *
 
 import sys
 import time
@@ -68,4 +68,4 @@ for (s, gt) in test_data:
     
     print "----"
     end_time=time.time()
-    print end_time-start_time
+    # print (end_time-start_time)
