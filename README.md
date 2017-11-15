@@ -9,7 +9,7 @@ Please note our approaches for Simplified, Variable Elimination and Viterbi ARE 
 For question 1 we are using the following definitions of emissions and transitions:
 	1. Emision: The probability of word occuring given its label. P('The'|Noun) or P('The'|Verb) or P('The'|Determinant) and so on.
 	2. Transition: The probability of a label occuring given the previous label. P(Noun|Verb) or P(Verb|Determinant) and so on.
-Here, if our algorithm sees a word it has has never observed before, we assign the highest probability to the unknown word being a noun. This word is then added to our training set and the next time this word is seen, our algorithm knows a way to deal with it.
+Here, if our algorithm sees a word it has never observed before, we assign the highest probability to the unknown word being a noun. This word is then added to our training set and the next time this word is seen, our algorithm knows a way to deal with it.
 
 For question 2 we are using the following definitions of emissions and transitions:
 	1. Initial: The probability of a charcter occuring as first character of the sentense. We are using Laplacian smoothing to get a better probability distribution and non-zero probability for characters not present in training data at 1st position.
