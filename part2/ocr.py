@@ -1,11 +1,12 @@
 #!/usr/bin/python
 #
 # ./ocr.py : Perform optical character recognition, usage:
-#     ./ocr.py train-image-file.png train-text.txt test-image-file.png
+# ./ocr.py train-image-file.png train-text.txt test-image-file.png
 # 
 # Authors: Ankita, Murtaza, Zoher 
 # (based on skeleton code by D. Crandall, Oct 2017)
 #
+# Please check the readme file for the description
 
 from PIL import Image, ImageDraw, ImageFont
 import math
@@ -17,35 +18,41 @@ CHARACTER_WIDTH=14
 CHARACTER_HEIGHT=25
 TRAIN_LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
 
+# Calculate sequence of characters using Naive Bayes Classsifier 
 def simplified(e_prob, i_prob):
     result = " Simple: "
     for i in range(len(e_prob)):
         if (i == 0):
-            each = [e_prob[i][j] * i_prob[j] for j in range(len(i_prob))]
+            each = [e_prob[i][j] * i_prob[j] for j in range(len(i_prob))] # initial and emission prob for 1st charcter
             result += TRAIN_LETTERS[each.index(max(each))]
         else:
-            result += TRAIN_LETTERS[e_prob[i].index(max(e_prob[i]))]
+            result += TRAIN_LETTERS[e_prob[i].index(max(e_prob[i]))] # only emission probabiity for other characters
     return result
 
+# Check whether a character from traing text document is alphabet or not 
 def isalphabet(ch):
     return (True if (not ch in "0123456789(),.-!?\"' ") else False)
 
+# Calculate sequence of characters using Variable Elimination (Forward and backward algorithm)
 def hmm_ve(characters, i_prob, t_prob, e_prob, f_prob):
     alphamat = [[0 for i in range(72)] for j in range(len(characters))]
     betamat = [[0 for i in range(72)] for j in range(len(characters))]
-    for t in range(len(characters)):
+    # Calculate alpha from 1st to last character and store in array of size TRAINING_LETTERS * TEST_CHARCTERS
+    for t in range(len(characters)): 
         for j in range(72):
             if t==0:
-                alphamat[t][j]=e_prob[t][j]*i_prob[j]
+                alphamat[t][j]=e_prob[t][j]*i_prob[j] 
             else:
                 alphamat[t][j]=e_prob[t][j]*sum([float(alphamat[t-1][i]*t_prob[i][j]) for i in range(72)])
-    for t in range(len(characters)-1,-1,-1):
+    # Calculate beta from last to first character
+    for t in range(len(characters)-1,-1,-1): 
         for j in range(72):
             if t==len(characters)-1:
                 betamat[t][j] = f_prob[j]
             else:
                 betamat[t][j]=sum([float(betamat[t+1][i]*e_prob[t+1][i]*t_prob[j][i]) for i in range(72)])
-    result = [[0 for i in range(72)] for j in range(len(characters))] 
+    result = [[0 for i in range(72)] for j in range(len(characters))]
+    # Calculate final probability for each character as product of Alpha and Beta
     for i in range(len(alphamat)):
        for j in range(len(betamat[0])):
            result[i][j] = result[i][j] = float(alphamat[i][j] * betamat[i][j])      
@@ -53,31 +60,34 @@ def hmm_ve(characters, i_prob, t_prob, e_prob, f_prob):
     for i in range(len(result)):
         hmm += TRAIN_LETTERS[result[i].index(max(result[i]))]
     return hmm
-    
+
+# Calculate sequence of characters using Viterbi Algorithm (Dynamic Programming):    
 def viterbi(len_test_let, i_prob, t_prob, e_prob):
     result = [[0 for j in range(len_test_let)] for i in range(len(TRAIN_LETTERS))]
-    memo = [[0 for i in range(len(TRAIN_LETTERS))] for j in range(len_test_let)]
+    vtable = [[0 for i in range(len(TRAIN_LETTERS))] for j in range(len_test_let)]
+    # Calculate values of Viterbi Table from 1st charcter to last character and then back to find the final sequence.
     for j in range(0, len_test_let):
         for i in range(len(TRAIN_LETTERS)):
             if (j == 0):
-                memo[j][i] = i_prob[i] * e_prob[j][i]
+                vtable[j][i] = i_prob[i] * e_prob[j][i]
             else:
-                cost = [memo[j - 1][k] * t_prob[k][i] for k in range(len(TRAIN_LETTERS))]
+                cost = [vtable[j - 1][k] * t_prob[k][i] for k in range(len(TRAIN_LETTERS))]
                 maxc = max(cost)
-                memo[j][i] = e_prob[j][i] * maxc
+                vtable[j][i] = e_prob[j][i] * maxc
                 result[i][j] = cost.index(maxc)
                 
     string = "HMM MAP: "
     string2 = ""
-    idx = memo[len_test_let - 1].index(max(memo[len_test_let - 1])) 
-    string2 += TRAIN_LETTERS[idx]
+    index = vtable[len_test_let - 1].index(max(vtable[len_test_let - 1])) 
+    string2 += TRAIN_LETTERS[index]
     i = len_test_let - 1
     while (i > 0):
-        idx = result[idx][i]
-        string2 += TRAIN_LETTERS[idx]
+        index = result[index][i]
+        string2 += TRAIN_LETTERS[index]
         i -= 1
     return string + string2[::-1]
 
+# Load the images into bits format
 def load_letters(fname):
     im = Image.open(fname)
     px = im.load()
@@ -87,10 +97,12 @@ def load_letters(fname):
         result += [ [ "".join([ '*' if px[x, y] < 1 else ' ' for x in range(x_beg, x_beg+CHARACTER_WIDTH) ]) for y in range(0, CHARACTER_HEIGHT) ], ]
     return result
 
+# Load the training image 
 def load_training_letters(fname):
     letter_images = load_letters(fname)
     return { TRAIN_LETTERS[i]: letter_images[i] for i in range(0, len(TRAIN_LETTERS) ) }
 
+# Match the pixel values for Training image character to test image character and return the count 
 def match(train_frm, test_frm):
     count = 0
     for i in range(CHARACTER_HEIGHT):
@@ -111,7 +123,7 @@ def match(train_frm, test_frm):
 train_letters = load_training_letters(train_img_fname)
 test_letters = load_letters(test_img_fname)
 #
-# Find initial, transitional and emission probabilities
+# Find initial, transitional, emission and final probabilities
 initial_prob = [0 for i in range(len(TRAIN_LETTERS))]
 initial_count = [0 for i in range(len(TRAIN_LETTERS))]
 transition_prob = [[0 for i in range(len(TRAIN_LETTERS))] for j in range(len(TRAIN_LETTERS))]
@@ -133,14 +145,17 @@ ifile = open(train_txt_fname, "r")
 for line in ifile:
     numberofline += 1
     line = line.lower()
+    # Count initial charcter occurances (For Both lower and upper case)
     if (line[0] in TRAIN_LETTERS):
         if (isalphabet(line[0])):
             initial_count[d[line[0]] - 26] += 1
         initial_count[d[line[0]]] += 1
+    # Count final charcter occurances (for Both lower and upper case)
     if (line[-1] in TRAIN_LETTERS):
         if (isalphabet(line[-1])):
             final_count[d[line[-1]] - 26] += 1
         final_count[d[line[-1]]] += 1
+    # Count transition from one charcter to the next character 
     for i in range(len(line) - 1):
         j = i + 1
         if (line[i] in TRAIN_LETTERS and line[j] in TRAIN_LETTERS):
@@ -154,7 +169,9 @@ for line in ifile:
             elif (isalphabet(line[j])):
                     transition_count[d[line[i]]][d[line[j]] - 26] +=1
 
-k = 1                 
+# Laplac Constant                   
+k = 1
+# Calculate the probabilities based on counts (Using laplacian smoothing to nullify biased training set)
 for i in range(len(TRAIN_LETTERS)):
     initial_prob[i] = float(initial_count[i] + k) / (numberofline + (72 * k))
     final_prob[i] = float(final_prob[i] + k) / (numberofline + (72 * k))
@@ -172,10 +189,8 @@ for i in range(len(test_letters)):
         if (emission_prob[i][j] <= 0):
             emission_prob[i][j] = float(1)/100
         j += 1
-
+        
+# Print the final results
 print (simplified(emission_prob, initial_prob))
 print (hmm_ve(test_letters, initial_prob, transition_prob, emission_prob, final_prob))
 print (viterbi(len(test_letters), initial_prob, transition_prob, emission_prob))
-
-
-
