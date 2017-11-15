@@ -7,7 +7,7 @@
 #
 #
 ####
-# Put your report here!!
+# Please find the report in the common readme file!:)
 ####
 
 import random
