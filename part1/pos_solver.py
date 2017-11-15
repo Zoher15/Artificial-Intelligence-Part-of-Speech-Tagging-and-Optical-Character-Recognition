@@ -20,6 +20,7 @@ For the Viterbi algorithm
 For question 1 we are using the following definitions of emissions and transitions: 
 1. Emision: The probability of word occuring given its label. P('The'|Noun) or P('The'|Verb) or P('The'|Determinant) and so on. 
 2. Transition: The probability of a label occuring given the previous label. P(Noun|Verb) or P(Verb|Determinant) and so on.
+
 '''
 ####
 
@@ -123,6 +124,7 @@ class Solver:
         for i in range(len(sentence)):
             self.most_probable_tag=[0]*12
             if(sentence[i] not in self.emission_probability):
+                #If word not seen before, provide high probability that, that word is a noun.
                 self.emission_probability[sentence[i]]=[Solver.count,Solver.count,Solver.count,Solver.count,Solver.count,1-(Solver.count)*11,Solver.count,Solver.count,Solver.count,Solver.count,Solver.count,Solver.count]
             for j in range(12):
                 self.most_probable_tag[j]= self.emission_probability[sentence[i]][j]*self.prior_probability[j]
