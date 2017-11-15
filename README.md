@@ -1,6 +1,6 @@
 # a3
 
-Approach: We first calculated the initial probabilities, the transition probabilities and emission probabilities based on our training dataset. To handle zero probabilities, we've smarlty chosen a value of 0.01 which is assigned instead of 0. This value has been derived after performing a number of tests on different arbitrary values. It was found that replacing 0 by 0.01 in the probabilites gives us the most accurate answer. These probabilities are then passed on to our algorithms (i.e.. Simplified, VE, and MAP).
+Approach: We first calculated the initial probabilities, the transition probabilities and emission probabilities based on our training dataset. To handle zero probabilities, we've smartly chosen a value of 0.01 which is assigned instead of 0. This value has been derived after performing a number of tests on different arbitrary values. It was found that replacing 0 by 0.01 in the probabilites gives us the most accurate answer. These probabilities are then passed on to our algorithms (i.e.. Simplified, VE, and MAP).
 
 Please note our approaches for Simplified, Variable Elimination and Viterbi ARE THE SAME for both programs:
 	For the Simplified algorithm we calculate the max of P(E|S)P(S) we calculate P(S) by mainitaining a table that would contain the count of each label while training
