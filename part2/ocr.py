@@ -7,7 +7,6 @@
 # (based on skeleton code by D. Crandall, Oct 2017)
 #
 # Please check the readme file for the description
-#
 # Approach: We first calculated the initial probabilities, the transition probabilities and emission probabilities based on our training dataset. These probabilities are then passed on to our algorithms (i.e.. Simplified, VE, and MAP).
 # Please note our approaches for Simplified, Variable Elimination and Viterbi ARE THE SAME for both programs: 
 # For the Simplified algorithm we calculate the max of P(E|S)P(S) we calculate P(S) by mainitaining a table that would contain the count of each label while training.
@@ -17,10 +16,10 @@
 # For question 1 we are using the following definitions of emissions and transitions: 
 # For question 2 we are using the following definitions of emissions and transitions:
 #        1. Initial: The probability of a charcter occuring as first character of the sentense. We are using Laplacian smoothing to get a better probability distribution and non-zero probability for characters not present in training data at 1st position.
-#        1. Emision: The probability of character occuring given an image. This is calculated by pixel matching of the matrix with the different matrices present in the training set. After experimentation and after findng better results, higher weight is assigned for matched pixels and less weight is assigned for matched spaces.
+#        1. Emision: The probability of character occuring given an image. This is calculated by pixel matching of the matrix with the different matrices present in the training set. We have set the probability of a noisy pixel as 0.3. Probability (observed pixel = "*" | training image pixel = "*") = 0.7 and Probability (observed pixel = " " | training image pixel = "*") = 0.3
 #        2. Transition: The probability of a character occuring given the previous character. P('a'|'b') or P('b'|'c') and so on. We are using Laplacian smoothing for transitional probability as well to get a better probability distribution and non-zero probability for character transactions that were not present in training data.
 #
-# Assumptions: 1. Training data is a Text representing large number of English words. 2. Test image will always include characters from that training dataset. 
+# Assumptions: 1. Training data is a Text representing large number of English words. 2. Test image will always include characters from that training dataset.
 
 from PIL import Image, ImageDraw, ImageFont
 import math
@@ -37,10 +36,10 @@ def simplified(e_prob, i_prob):
     result = " Simple: "
     for i in range(len(e_prob)):
         if (i == 0):
-            each = [e_prob[i][j] * i_prob[j] for j in range(len(i_prob))] # initial and emission prob for 1st charcter
-            result += TRAIN_LETTERS[each.index(max(each))]
+            each = [e_prob[i][j] + -math.log(i_prob[j]) for j in range(len(i_prob))] # initial and emission prob for 1st charcter
+            result += TRAIN_LETTERS[each.index(min(each))]
         else:
-            result += TRAIN_LETTERS[e_prob[i].index(max(e_prob[i]))] # only emission probabiity for other characters
+            result += TRAIN_LETTERS[e_prob[i].index(min(e_prob[i]))] # only emission probabiity for other characters
     return result
 
 # Check whether a character from traing text document is alphabet or not 
@@ -83,16 +82,16 @@ def viterbi(len_test_let, i_prob, t_prob, e_prob):
     for j in range(0, len_test_let):
         for i in range(len(TRAIN_LETTERS)):
             if (j == 0):
-                vtable[j][i] = i_prob[i] * e_prob[j][i]
+                vtable[j][i] = -math.log(i_prob[i]) + e_prob[j][i]
             else:
-                cost = [vtable[j - 1][k] * t_prob[k][i] for k in range(len(TRAIN_LETTERS))]
-                maxc = max(cost)
-                vtable[j][i] = e_prob[j][i] * maxc
+                cost = [vtable[j - 1][k] + -math.log(t_prob[k][i]) for k in range(len(TRAIN_LETTERS))]
+                maxc = min(cost)
+                vtable[j][i] = e_prob[j][i] + maxc
                 result[i][j] = cost.index(maxc)
                 
     string = "HMM MAP: "
     string2 = ""
-    index = vtable[len_test_let - 1].index(max(vtable[len_test_let - 1])) 
+    index = vtable[len_test_let - 1].index(min(vtable[len_test_let - 1])) 
     string2 += TRAIN_LETTERS[index]
     i = len_test_let - 1
     while (i > 0):
@@ -117,25 +116,22 @@ def load_training_letters(fname):
     return { TRAIN_LETTERS[i]: letter_images[i] for i in range(0, len(TRAIN_LETTERS) ) }
 
 # Match the pixel values for Training image character to test image character and return the count 
-def match(train_frm, test_frm):
-    count = 0
+def match(train_frm, test_frm, P_trainletter):
+    P_test_train = 0
     for i in range(CHARACTER_HEIGHT):
         for j in range(CHARACTER_WIDTH):
-            if (train_frm[i][j] == '*' and test_frm[i][j] == '*'):
-               count += 20
-            elif (train_frm[i][j] == ' ' and test_frm[i][j] == ' '):
-               count += 1
-            elif (train_frm[i][j] == ' ' and test_frm[i][j] == '*'):
-                count -= 20
+            if (train_frm[i][j] == test_frm[i][j]):
+                P_test_train += -(math.log((1 - m))) 
             else:
-                count -= 30
-    return count
+                P_test_train += -math.log((m))
+    return (P_test_train + math.log(P_trainletter))
 
 #####
 # main program
 (train_img_fname, train_txt_fname, test_img_fname) = sys.argv[1:]
 train_letters = load_training_letters(train_img_fname)
 test_letters = load_letters(test_img_fname)
+m = 0.3                               
 #
 # Find initial, transitional, emission and final probabilities
 initial_prob = [0 for i in range(len(TRAIN_LETTERS))]
@@ -143,9 +139,11 @@ initial_count = [0 for i in range(len(TRAIN_LETTERS))]
 transition_prob = [[0 for i in range(len(TRAIN_LETTERS))] for j in range(len(TRAIN_LETTERS))]
 transition_count = [[0 for i in range(len(TRAIN_LETTERS))] for j in range(len(TRAIN_LETTERS))]
 emission_prob = [[0.0 for i in range(len(train_letters))] for j in range(len(test_letters))]
+nonlog_emission_prob = [[0.0 for i in range(len(train_letters))] for j in range(len(test_letters))]
 final_prob = [0 for i in range(len(TRAIN_LETTERS))]
 final_count = [0 for i in range(len(TRAIN_LETTERS))]
-
+P_train_letter = [0 for i in range(len(TRAIN_LETTERS))]
+    
 # Dictionary for the TRAIN_LETTERS index
 d = {}
 i = 0
@@ -155,6 +153,7 @@ for ch in TRAIN_LETTERS:
 
 # Calculate initial and transitional probabilities   
 numberofline = 0
+numberofchar = 0
 ifile = open(train_txt_fname, "r")
 for line in ifile:
     numberofline += 1
@@ -173,6 +172,8 @@ for line in ifile:
     for i in range(len(line) - 1):
         j = i + 1
         if (line[i] in TRAIN_LETTERS and line[j] in TRAIN_LETTERS):
+            P_train_letter[d[line[i]]] += 1
+            numberofchar += 1
             transition_count[d[line[i]]][d[line[j]]] +=1
             if (isalphabet(line[i])):
                 if (isalphabet(line[j])):
@@ -182,6 +183,9 @@ for line in ifile:
                     transition_count[d[line[i]] - 26][d[line[j]]] +=1                      
             elif (isalphabet(line[j])):
                     transition_count[d[line[i]]][d[line[j]] - 26] +=1
+    if (line[j] in TRAIN_LETTERS):
+        P_train_letter[d[line[j]]] += 1
+        numberofchar += 1
 
 # Laplac Constant                   
 k = 1
@@ -189,22 +193,34 @@ k = 1
 for i in range(len(TRAIN_LETTERS)):
     initial_prob[i] = float(initial_count[i] + k) / (numberofline + (72 * k))
     final_prob[i] = float(final_prob[i] + k) / (numberofline + (72 * k))
+    P_train_letter[i] = float(P_train_letter[i] + k) / (numberofchar + (72 * k))
     s = sum(transition_count[i])
     for j in range(len(TRAIN_LETTERS)):
         transition_prob[i][j] = float(transition_count[i][j] + 1) / (s + (72 * k))
         
 # Calculate emission probabilities            
 num_pixels = CHARACTER_HEIGHT * CHARACTER_WIDTH
-
 for i in range(len(test_letters)):
     j = 0
     for ch in TRAIN_LETTERS:
-        emission_prob[i][j] = float(match(train_letters[ch], test_letters[i])) / (num_pixels)
-        if (emission_prob[i][j] <= 0):
-            emission_prob[i][j] = float(1)/100
+        emission_prob[i][j] = match(train_letters[ch], test_letters[i], P_train_letter[d[ch]])
+        nonlog_emission_prob[i][j] = math.exp(-emission_prob[i][j]) 
         j += 1
-        
+
+threshold = math.pow(2.71, -140)
+average = float(sum(nonlog_emission_prob[0])) / len(nonlog_emission_prob[0])
+if (average < threshold):
+    power = 70
+else:
+    power = 60
+
+for i in range(len(test_letters)):
+    for j in range(len(TRAIN_LETTERS)):
+        nonlog_emission_prob[i][j] *= math.pow(10, power) 
+
 # Print the final results
 print (simplified(emission_prob, initial_prob))
-print (hmm_ve(test_letters, initial_prob, transition_prob, emission_prob, final_prob))
+print (hmm_ve(test_letters, initial_prob, transition_prob, nonlog_emission_prob, final_prob))
 print (viterbi(len(test_letters), initial_prob, transition_prob, emission_prob))
+
+
