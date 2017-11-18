@@ -13,7 +13,7 @@ Here, if our algorithm sees a word it has never observed before, we assign the h
 
 For question 2 we are using the following definitions of emissions and transitions:
 	1. Initial: The probability of a charcter occuring as first character of the sentense. We are using Laplacian smoothing to get a better probability distribution and non-zero probability for characters not present in training data at 1st position.
-	1. Emision: The probability of character occuring given an image. This is calculated by pixel matching of the matrix with the different matrices present in the training set. After experimentation and after findng better results, higher weight is assigned for matched pixels and less weight is assigned for matched spaces.
+	1. Emision: The probability of character occuring given an image. This is calculated by pixel matching of the matrix with the different matrices present in the training set. We have set the probability of a noisy pixel as 0.3. Probability (observed pixel = "*" | training image pixel = "*") = 0.7 and Probability (observed pixel = " " | training image pixel = "*") = 0.3
 	2. Transition: The probability of a character occuring given the previous character. P('a'|'b') or P('b'|'c') and so on. We are using Laplacian smoothing for transitional probability as well to get a better probability distribution and non-zero probability for character transactions that were not present in training data.
 	
 	
