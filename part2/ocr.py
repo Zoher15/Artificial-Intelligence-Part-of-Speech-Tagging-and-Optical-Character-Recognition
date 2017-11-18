@@ -12,8 +12,9 @@
 # For the Simplified algorithm we calculate the max of P(E|S)P(S) we calculate P(S) by mainitaining a table that would contain the count of each label while training.
 # For the Variable Elimination algorithm we have used the forward-backward approach. Wherein alpha is P(St,E1,E2,E3...Et) and beta is P(St|Et+1,Et+2,....ET). 
 # We calculated the state where the product of alpha and beta is the maximum. We used dynamic programming to maintain tables for both.
-# For the Viterbi algorithm 
-# For question 1 we are using the following definitions of emissions and transitions: 
+# For the Viterbi algorithm, we are calculating probability of being in a state j for a observed value and storing it in table to be used for next observed value probability calculation. 
+#This serves as memoization table for us. Along with calculation we are also storing index of max value which gave the probability of the state in a array called result. This array is used 
+#at the end to backtrack to find the final sequence.
 # For question 2 we are using the following definitions of emissions and transitions:
 #        1. Initial: The probability of a charcter occuring as first character of the sentense. We are using Laplacian smoothing to get a better probability distribution and non-zero probability for characters not present in training data at 1st position.
 #        1. Emision: The probability of character occuring given an image. This is calculated by pixel matching of the matrix with the different matrices present in the training set. We have set the probability of a noisy pixel as 0.3. Probability (observed pixel = "*" | training image pixel = "*") = 0.7 and Probability (observed pixel = " " | training image pixel = "*") = 0.3

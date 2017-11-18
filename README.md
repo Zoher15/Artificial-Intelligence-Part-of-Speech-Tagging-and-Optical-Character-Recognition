@@ -1,6 +1,6 @@
 # a3
 
-Approach: We first calculated the initial probabilities, the transition probabilities and emission probabilities based on our training dataset. These probabilities are then passed on to our algorithms (i.e.. Simplified, VE, and MAP).
+Approach: We first calculated the initial probabilities, the transition probabilities and emission probabilities based on our training dataset. To handle zero probabilities, we've smartly chosen a value of 0.01 which is assigned instead of 0. This value has been derived after performing a number of tests on different arbitrary values. It was found that replacing 0 by 0.01 in the probabilities gives us the most accurate answer. These probabilities are then passed on to our algorithms (i.e.. Simplified, VE, and MAP).
 
 Please note our approaches for Simplified, Variable Elimination and Viterbi ARE THE SAME for both programs:
 	For the Simplified algorithm we calculate the max of P(E|S)P(S) we calculate P(S) by mainitaining a table that would contain the count of each label while training
@@ -9,6 +9,7 @@ Please note our approaches for Simplified, Variable Elimination and Viterbi ARE 
 For question 1 we are using the following definitions of emissions and transitions:
 	1. Emision: The probability of word occuring given its label. P('The'|Noun) or P('The'|Verb) or P('The'|Determinant) and so on.
 	2. Transition: The probability of a label occuring given the previous label. P(Noun|Verb) or P(Verb|Determinant) and so on.
+Here, if our algorithm sees a word it has never observed before, we assign the highest probability to the unknown word being a noun. This word is then added to our training set and the next time this word is seen, our algorithm knows a way to deal with it.
 
 For question 2 we are using the following definitions of emissions and transitions:
 	1. Initial: The probability of a charcter occuring as first character of the sentense. We are using Laplacian smoothing to get a better probability distribution and non-zero probability for characters not present in training data at 1st position.
