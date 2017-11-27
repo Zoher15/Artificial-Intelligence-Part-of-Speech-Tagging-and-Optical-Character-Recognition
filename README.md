@@ -1,6 +1,22 @@
-# a3
+# Part 1: Part of Speech (POS) Tagging
+Natural language processing (NLP) is an important research area in artificial intelligence, dating back to at least the 1950’s. One of the most basic problems in NLP is part-of-speech tagging, in which the goal is to mark every word in a sentence with its part of speech (noun, verb, adjective, etc.). This is a first step towards extracting semantics from natural language text. For example, consider the following sentence:
+Her position covers a number of daily tasks common to any social director.
+Part-of-speech tagging here is not easy because many of these words can take on different parts of speech depending on context. For example, position can be a noun (as in the above sentence) or a verb (as in “They position themselves near the exit”). In fact, covers, number, and tasks can all be used as either nouns or verbs, while social and common can be nouns or adjectives, and daily can be an adjective, noun, or adverb. The correct labeling for the above sentence is:
+	Her	position covers	 a   number  of  daily tasks  common  to   any  social  director.
+	DET	NOUN	  VERB  DET  NOUN   ADP   ADJ  NOUN    ADJ    ADP  DET   ADJ     NOUN
+where DET stands for a determiner, ADP is an adposition, ADJ is an adjective, and ADV is an adverb. Labeling parts of speech thus involves an understanding of the intended meaning of the words in the sentence, as well as the relationships between the words.
 
-Approach: We first calculated the initial probabilities, the transition probabilities and emission probabilities based on our training dataset. To handle zero probabilities, we've smartly chosen a value of 0.01 which is assigned instead of 0. This value has been derived after performing a number of tests on different arbitrary values. It was found that replacing 0 by 0.01 in the probabilities gives us the most accurate answer. These probabilities are then passed on to our algorithms (i.e.. Simplified, VE, and MAP).
+Supervised by **David Crandall** Code by **Murtaza Khambaty** Assisted by **Zoher Kachwala** **Ankita Alshi**
+
+# Part 2: Optical Character Recognition (OCR)
+Modern OCR is very good at recognizing documents, but rather poor when recognizing isolated characters. It turns out that the main reason for OCR’s success is that there’s a strong language model: the algorithm can resolve ambiguities in recognition by using statistical constraints of English (or whichever language is being processed). These constraints can be incorporated very naturally using an HMM.
+Let’s say we’ve already divided a text string image up into little subimages corresponding to individual letters; a real OCR system has to do this letter segmentation automatically, but here we’ll assume a fixed-width font so that we know exactly where each letter begins and ends ahead of time. In particular, we’ll assume each letter fits in a box that’s 16 pixels wide and 25 pixels tall. We’ll also assume that our documents only have the 26 uppercase latin characters, the 26 lowercase characters, the 10 digits, spaces, and 7 punctuation symbols, (),.-!?’". Suppose we’re trying to recognize a text string with n characters, so we have n observed variables (the subimage corresponding to each letter) O1,...,On and n hidden variables, l1...,ln, which are the letters we want to recognize. We’re thus interested in P(l1,...,ln|O1,...,On). As in part 1, we can rewrite this using Bayes’ Law, estimate P(Oi|li) and P(li|li−1) from training data, then use probabilistic inference to estimate the posterior, in order to recognize letters.
+
+Supervised by **David Crandall** Code by **Ankita Alshi** Assisted by **Zoher Kachwala** **Murtaza Khambaty**
+
+# Team Approach
+
+We first calculated the initial probabilities, the transition probabilities and emission probabilities based on our training dataset. To handle zero probabilities, we've smartly chosen a value of 0.01 which is assigned instead of 0. This value has been derived after performing a number of tests on different arbitrary values. It was found that replacing 0 by 0.01 in the probabilities gives us the most accurate answer. These probabilities are then passed on to our algorithms (i.e.. Simplified, VE, and MAP).
 
 Please note our approaches for Simplified, Variable Elimination and Viterbi ARE THE SAME for both programs:
 	For the Simplified algorithm we calculate the max of P(E|S)P(S) we calculate P(S) by mainitaining a table that would contain the count of each label while training
